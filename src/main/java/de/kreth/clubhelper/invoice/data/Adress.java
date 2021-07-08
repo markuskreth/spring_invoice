@@ -62,6 +62,10 @@ public class Adress extends BaseEntity {
 		+ zip + ", city=" + city + "]";
     }
 
+    public boolean isValid() {
+	return adress1 != null && !adress1.isBlank();
+    }
+
     @Override
     public int hashCode() {
 	final int prime = 31;

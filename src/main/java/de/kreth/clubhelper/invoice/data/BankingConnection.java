@@ -51,6 +51,10 @@ public class BankingConnection extends BaseEntity {
 	return iban;
     }
 
+    public boolean isValid() {
+	return iban != null;
+    }
+
     @Override
     public int hashCode() {
 	final int prime = 31;

@@ -6,11 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -27,8 +24,8 @@ public class Invoice extends BaseEntity {
     @OneToMany(mappedBy = "invoice")
     private List<InvoiceItem> items;
 
-    @ManyToOne(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+//    @ManyToOne(cascade = CascadeType.REFRESH)
+//    @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
 
     public String getInvoiceId() {
