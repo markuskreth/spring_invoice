@@ -6,10 +6,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class H2Conriguration {
+public class H2Configuration {
     @Bean
-    ServletRegistrationBean h2servletRegistration() {
-	ServletRegistrationBean registrationBean = new ServletRegistrationBean(new WebServlet());
+    ServletRegistrationBean<WebServlet> h2ServletRegistration() {
+	ServletRegistrationBean<WebServlet> registrationBean = new ServletRegistrationBean<WebServlet>(
+		new WebServlet());
 	registrationBean.addUrlMappings("/console/*");
 	return registrationBean;
     }
