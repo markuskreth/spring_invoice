@@ -67,7 +67,7 @@ public class UiSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		.anonymous().disable()
 		.authorizeRequests()
 		.requestMatchers(this::isFrameworkInternalRequest).permitAll()
-//		.antMatchers("/console/**").permitAll()
+		.antMatchers("/console/**").permitAll()
 		.mvcMatchers("", "user")
 		.hasAnyRole("ROLE_trainer", "ROLE_admin", "trainer", "admin", "TRAINER", "ADMIN")
 		.anyRequest().hasAnyRole("ROLE_trainer", "ROLE_admin", "trainer", "admin", "TRAINER", "ADMIN");

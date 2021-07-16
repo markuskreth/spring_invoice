@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
 
 @MappedSuperclass
 public class BaseEntity implements Serializable {
@@ -44,6 +45,17 @@ public class BaseEntity implements Serializable {
 
     public void setChangeDate(LocalDateTime changeDate) {
 	this.changeDate = changeDate;
+    }
+
+    @PrePersist
+    void prePersist() {
+	if (this.createdDate == null) {
+	    LocalDateTime now = LocalDateTime.now();
+	    this.createdDate = now;
+	    this.changeDate = now;
+	} else {
+	    this.changeDate = LocalDateTime.now();
+	}
     }
 
     @Override

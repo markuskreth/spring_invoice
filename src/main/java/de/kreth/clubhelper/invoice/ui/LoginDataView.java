@@ -16,6 +16,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -53,6 +56,7 @@ public class LoginDataView extends VerticalLayout
     private TextField iban;
     private TextField bic;
     private Button storeButton;
+    private Label status;
 
     public LoginDataView(@Autowired UserRepository userRepository,
 	    @Autowired UserBankRepository bankRepository,
@@ -163,7 +167,13 @@ public class LoginDataView extends VerticalLayout
 
 	storeButton = new Button("Speichern", this::storeValues);
 
-	add(storeButton);
+	Button backButton = new Button(VaadinIcon.BACKWARDS.create(), this::navigateBack);
+
+	add(new HorizontalLayout(storeButton, backButton));
+    }
+
+    void navigateBack(ClickEvent<Button> ev) {
+	ev.getSource().getUI().ifPresent(ui -> ui.navigate(MainView.class));
     }
 
     void storeValues(ClickEvent<Button> ev) {
@@ -177,6 +187,10 @@ public class LoginDataView extends VerticalLayout
 	if (adressBinder.isValid() && bankBinder.isValid()) {
 	    hasChanges.set(false);
 	}
+	if (adressBinder.isValid() || bankBinder.isValid()) {
+	    Notification.show("Erfolgreich gespeichert.", 1500, Position.TOP_END);
+	}
+	toggleEnableStates();
     }
 
     void toggleEnableStates() {

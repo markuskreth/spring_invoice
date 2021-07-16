@@ -1,5 +1,8 @@
 package de.kreth.clubhelper.invoice.ui;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +21,21 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import de.kreth.clubhelper.invoice.data.Article;
 import de.kreth.clubhelper.invoice.data.User;
 import de.kreth.clubhelper.invoice.data.UserAdress;
 import de.kreth.clubhelper.invoice.data.UserBank;
+import de.kreth.clubhelper.invoice.db.ArticleRepository;
+import de.kreth.clubhelper.invoice.db.InvoiceItemRepository;
 import de.kreth.clubhelper.invoice.db.UserAdressRepository;
 import de.kreth.clubhelper.invoice.db.UserBankRepository;
 import de.kreth.clubhelper.invoice.db.UserRepository;
+import de.kreth.clubhelper.invoice.ui.component.InvoiceItemOverviewComponent;
 
 @Route
 @PageTitle("Personenliste")
@@ -37,18 +43,23 @@ public class MainView extends VerticalLayout implements BeforeEnterObserver {
 
     private static final long serialVersionUID = 1L;
     private AccessToken token;
-    private Label name;
-    private Label email;
-    private Label id;
-    private UserRepository userRepository;
-    private UserBankRepository bankRepository;
-    private UserAdressRepository adressRepository;
+    private final UserRepository userRepository;
+    private final UserBankRepository bankRepository;
+    private final UserAdressRepository adressRepository;
+    private final InvoiceItemRepository invoiceItemRepository;
+    private final ArticleRepository articleRepository;
+    private InvoiceItemOverviewComponent invoiceItems;
+    private User user;
 
     public MainView(@Autowired UserRepository userRepository, @Autowired UserBankRepository userBankRepository,
-	    @Autowired UserAdressRepository adressRepository) {
+	    @Autowired UserAdressRepository adressRepository,
+	    @Autowired InvoiceItemRepository invoiceItemRepository,
+	    @Autowired ArticleRepository articleRepository) {
 	this.userRepository = userRepository;
 	this.bankRepository = userBankRepository;
 	this.adressRepository = adressRepository;
+	this.invoiceItemRepository = invoiceItemRepository;
+	this.articleRepository = articleRepository;
     }
 
     @Override
@@ -59,7 +70,7 @@ public class MainView extends VerticalLayout implements BeforeEnterObserver {
 	KeycloakPrincipal<?> principal = (KeycloakPrincipal<?>) authentication.getPrincipal();
 	token = principal.getKeycloakSecurityContext().getToken();
 
-	User user = userRepository.findByPrincipalId(token.getSubject());
+	user = userRepository.findByPrincipalId(token.getSubject());
 	if (user == null) {
 	    user = new User();
 	    user.setPrincipal(token);
@@ -72,7 +83,23 @@ public class MainView extends VerticalLayout implements BeforeEnterObserver {
 	if (isBankOrAdressInvalid(bank, adress)) {
 	    event.getUI().navigate(LoginDataView.class);
 	} else {
+	    checkArticle();
 	    createUi();
+	}
+    }
+
+    private void checkArticle() {
+	if (articleRepository.count() <= 0) {
+
+	    Article article = new Article();
+	    LocalDateTime now = LocalDateTime.now();
+	    article.setChangeDate(now);
+	    article.setCreatedDate(now);
+	    article.setDescription("Dummy Übungsleiter");
+	    article.setTitle("Dummy");
+	    article.setPricePerHour(BigDecimal.valueOf(7.5));
+	    article.setUserId(user.getId());
+	    articleRepository.save(article);
 	}
     }
 
@@ -85,21 +112,16 @@ public class MainView extends VerticalLayout implements BeforeEnterObserver {
 	Button menuButton = new Button(VaadinIcon.MENU.create());
 	menuButton.addClickListener(this::onMenuButtonClick);
 
-	Button addButton = new Button(VaadinIcon.PLUS_CIRCLE_O.create());
-
-	HorizontalLayout l = new HorizontalLayout(menuButton, new H1("Übungsleiter Abrechnung"), addButton);
+	HorizontalLayout l = new HorizontalLayout(menuButton, new H1("Übungsleiter Abrechnung"));
 	l.setAlignItems(Alignment.CENTER);
 	add(l);
 
-	TextField filter = new TextField("Filter des Vor- oder Nachnamens");
-	filter.setPlaceholder("Filter nach Name...");
-	filter.setClearButtonVisible(true);
+	Label name = new Label(token.getGivenName() + " " + token.getFamilyName());
+	Label email = new Label(token.getEmail());
+	add(name, email);
 
-	name = new Label(token.getGivenName() + " " + token.getFamilyName());
-	email = new Label(token.getEmail());
-	id = new Label(token.getSubject());
-
-	add(filter, name, email, id);
+	invoiceItems = new InvoiceItemOverviewComponent(invoiceItemRepository, articleRepository, user);
+	add(invoiceItems);
 
     }
 

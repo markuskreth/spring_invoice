@@ -33,6 +33,10 @@ public class InvoiceItem extends BaseEntity {
     @Column(name = "sum_price")
     private BigDecimal sumPrice;
 
+    public String getTitle() {
+	return getArticle().getTitle();
+    }
+
     public LocalDateTime getStart() {
 	return start;
     }
